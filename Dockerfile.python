@@ -17,9 +17,14 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
     conda clean -ay && \
     rm -rf $HOME/miniconda3/pkgs/*
 
-# pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
-# pip config set install.trusted-host pypi.tuna.tsinghua.edu.cn
-
+# Set pip mirror, choose from tsinghua, aliyun, douban
+RUN source .zshrc && \
+    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+    pip config set install.trusted-host pypi.tuna.tsinghua.edu.cn
+    # pip config set global.index-url https://mirrors.aliyun.com/pypi/simple && \
+    # pip config set install.trusted-host mirrors.aliyun.com
+    # pip config set global.index-url http://pypi.douban.com/simple && \
+    # pip config set install.trusted-host pypi.douban.com
 
 # Unset DEBIAN_FRONTEND
 ENV DEBIAN_FRONTEND=
