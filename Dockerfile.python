@@ -1,0 +1,27 @@
+# Use the latest Ubuntu base image as the base
+FROM ubuntu:base
+
+# Set maintainer label
+LABEL maintainer="your.email@example.com"
+
+# Set noninteractive DEBIAN_FRONTEND
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install miniconda/python/pip
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+    sudo chmod +x ./miniconda.sh && \
+    ./miniconda.sh -b && \
+    rm miniconda.sh && \
+    $HOME/miniconda3/bin/conda init --all && \
+    source .zshrc && \
+    conda clean -ay && \
+    rm -rf $HOME/miniconda3/pkgs/*
+
+# pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
+# pip config set install.trusted-host pypi.tuna.tsinghua.edu.cn
+
+
+# Unset DEBIAN_FRONTEND
+ENV DEBIAN_FRONTEND=
+# Start zsh as the default shell
+CMD ["/usr/bin/zsh"]

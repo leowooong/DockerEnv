@@ -1,0 +1,48 @@
+# Use the latest Ubuntu image as the base
+FROM ubuntu:22.04
+
+# Set maintainer label
+LABEL maintainer="your.email@example.com"
+
+# Set noninteractive DEBIAN_FRONTEND
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install necessary packages and tools
+RUN apt-get update && \
+    apt-get install -y zsh git vim wget curl sudo && \
+    chsh -s $(which zsh)
+SHELL ["/usr/bin/zsh", "-c"]
+
+# Set environment variables to support UTF-8
+RUN apt-get install -y locales && \
+    locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
+# Set timezone
+RUN apt-get install -y tzdata && \
+    ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+# Create the user, we can override USRNAME later with --build-arg USRNAME=newuser
+ARG USRNAME=me
+RUN useradd -m $USRNAME && \
+    echo "$USRNAME ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USRNAME && \
+    chmod 0440 /etc/sudoers.d/$USRNAME
+USER $USRNAME
+WORKDIR /home/$USRNAME
+
+# Install Oh My Zsh, theme and add plugins
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+RUN git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+RUN git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+RUN sed -i 's/ZSH_THEME="robbyrussell"/ZSH_THEME="agnoster"/' /home/$USRNAME/.zshrc && \
+    sed -i 's/plugins=(git)/plugins=(git sudo z extract pip zsh-autosuggestions zsh-syntax-highlighting)/' /home/$USRNAME/.zshrc
+
+# Unset DEBIAN_FRONTEND
+ENV DEBIAN_FRONTEND=
+# Start zsh as the default shell
+CMD ["/usr/bin/zsh"]
